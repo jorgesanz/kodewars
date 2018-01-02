@@ -110,26 +110,14 @@ public class SkyScrapers {
         return copy;
     }
 
-    private static void printSolution(int[][] solution) {
-        System.out.println("New Solution");
-        for(int i = 0; i < BOARD_SIZE ; i++){
-            for(int j = 0; j < BOARD_SIZE ; j++){
-                System.out.println(String.format("%s %s: %s",i,j,solution[i][j]));
-            }
-        }
-    }
 
     private static boolean isSolution(int[] clues, int[][] solution) {
-        return (validateClues(clues, solution));
-    }
-
-
-    private static boolean validateClues(int[] clues, int[][] solution) {
         for(int i =0; i<BOARD_SIZE; i++){
             if (!validateClueRow(i,clues,solution)) return false;
         }
         return true;
     }
+
 
     private static boolean validateClueRow(int i, int[] clues, int[][] solution) {
         switch (i){
@@ -153,6 +141,17 @@ public class SkyScrapers {
         int[] leftClues = new int[BOARD_SIZE];
         for (int i=0;i<BOARD_SIZE;i++){
             leftClues[i]= clues[i+(3*BOARD_SIZE)];
+        }
+        for(int i=0;i<BOARD_SIZE;i++){
+            int clue = leftClues[i];
+            if(clue!=0){
+                int[] skyScrapperLine = new int[BOARD_SIZE];
+                for(int j=0; j<BOARD_SIZE;j++){
+                    skyScrapperLine[j]=solution[BOARD_SIZE-i-1][j];
+                }
+                int visibleBuildings = visibleBuildings(skyScrapperLine);
+                if (visibleBuildings!=clue) return false;
+            }
         }
         return true;
     }
