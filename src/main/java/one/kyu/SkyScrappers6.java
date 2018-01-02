@@ -2,22 +2,49 @@ package one.kyu;
 
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.Assert.assertArrayEquals;
 
 public class SkyScrappers6 {
 
+
     public static final int BOARD_SIZE = 6;
 
-    static int[][] solvePuzzle(int[] clues) {
-        int[][] initialBoard = new int[BOARD_SIZE][BOARD_SIZE];
-        List<int[][]> solutions = new ArrayList<>();
-        obtainSolution(clues, initialBoard, 0, solutions, false);
-        return solutions.get(0);
+    static int[][] solvePuzzle(int[] clues){
+
+
+        Queue<Node> queue = new PriorityQueue<>(new Comparator<Node>() {
+            public int compare(Node n1, Node n2) {
+                return (n2.getScore()-n1.getScore());
+            }
+        });
+
+        queue.add(new Node(new int[BOARD_SIZE][BOARD_SIZE],0, 0));
+        while(!queue.isEmpty()){
+            Node firstNode = queue.poll();
+            if(isSolution(clues, firstNode.getBoard())){
+                return firstNode.getBoard();
+            }
+            if(!isFinalNode(firstNode.getLevel())){
+                queue.addAll(expand(firstNode));
+            }
+        }
+        throw new RuntimeException("No solution found");
+    }
+
+    private static Collection<? extends Node> expand(Node firstNode) {
+        List<Node> nodes = new ArrayList<>();
+        int i = firstNode.getLevel() / BOARD_SIZE;
+        int j = firstNode.getLevel() % BOARD_SIZE;
+        for(int k=1;k<BOARD_SIZE;k++){
+            int[][] updatedBoard = copyBoard(firstNode.getBoard());
+            updatedBoard[i][j] = k;
+            if (validateHeights(updatedBoard)) {
+                nodes.add(new Node(updatedBoard,firstNode.getLevel()+1, firstNode.getLevel()+1));
+            }
+        }
+        return nodes;
     }
 
 
@@ -31,13 +58,21 @@ public class SkyScrappers6 {
                 updatedBoard[i][j] = k;
                 if (validateHeights(updatedBoard)) {
                     obtainSolution(clues, updatedBoard, position + 1, solutions, success);
-                    if (position == BOARD_SIZE * BOARD_SIZE - 1 && isSolution(clues, updatedBoard)) {
+
+                    if (isFinalNode(position) && isSolution(clues, updatedBoard)) {
                         success = true;
                         solutions.add(updatedBoard);
                     }
                 }
             }
         }
+    }
+
+    private static boolean isFinalNode(int position) {
+        if (position == BOARD_SIZE * BOARD_SIZE - 1){
+            System.out.println("final node found");
+        }
+        return position == BOARD_SIZE * BOARD_SIZE - 1;
     }
 
 
@@ -183,6 +218,42 @@ public class SkyScrappers6 {
             }
         }
         return visibleBuildings;
+    }
+
+    public static class Node {
+        private int level;
+        private int[][] board;
+        private int score;
+
+        public Node(int[][] board, int level, int score) {
+            this.board=board;
+            this.level=level;
+            this.score = score;
+        }
+
+        public int getLevel() {
+            return level;
+        }
+
+        public void setLevel(int level) {
+            this.level = level;
+        }
+
+        public int[][] getBoard() {
+            return board;
+        }
+
+        public void setBoard(int[][] board) {
+            this.board = board;
+        }
+
+        public int getScore() {
+            return score;
+        }
+
+        public void setScore(int score) {
+            this.score = score;
+        }
     }
 
     @Test
