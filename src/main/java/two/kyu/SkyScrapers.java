@@ -24,12 +24,12 @@ Can you write a program that can solve this puzzle?
 * */
 public class SkyScrapers {
 
-    public static final int BOARD_SIZE = 4;
+    public static final int BOARD_SIZE = 5;
 
     static int[][] solvePuzzle(int[] clues) {
         int[][] solution = new int[BOARD_SIZE][BOARD_SIZE];
         List<int[][]> candidates = new ArrayList<>();
-        obtainCandidates(solution, 0, candidates);
+        obtainCandidates(clues, solution, 0, candidates, false);
         List<int[][]> solutions = obtainSolutions(clues,candidates);
         solution = solutions.get(0);
         return solution;
@@ -45,18 +45,22 @@ public class SkyScrapers {
         return solutions;
     }
 
-    private static void obtainCandidates(int[][] currentBoard, int position, List<int[][]> solutions) {
+    private static void obtainCandidates(int[] clues, int[][] currentBoard, int position, List<int[][]> solutions, boolean success) {
 
-        if(position!=BOARD_SIZE*BOARD_SIZE){
+        if(position!=BOARD_SIZE*BOARD_SIZE && !success){
             int i = position / BOARD_SIZE;
             int j = position % BOARD_SIZE;
             for (int k = 1; k<=BOARD_SIZE ; k++){
                 int[][] updatedBoard = copyBoard(currentBoard);
                 updatedBoard[i][j]=k;
                 if(isRealCandidate(updatedBoard)){
-                    obtainCandidates(updatedBoard, position + 1, solutions);
+                    obtainCandidates(clues, updatedBoard, position + 1, solutions, success);
                     if (position == BOARD_SIZE * BOARD_SIZE -1){
-                        solutions.add(updatedBoard);
+                        if(isSolution(clues,updatedBoard)){
+                            success = true;
+                            solutions.add(updatedBoard);
+                        }
+
                     }
                 }
             }
