@@ -2,7 +2,9 @@ package two.kyu;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static junit.framework.TestCase.assertEquals;
@@ -26,32 +28,41 @@ public class SkyScrapers {
 
     static int[][] solvePuzzle(int[] clues) {
         int[][] solution = new int[BOARD_SIZE][BOARD_SIZE];
-        return solvePuzzle(solution, 0);
+        List<int[][]> candidates = new ArrayList<>();
+        obtainCandidates(solution, 0, candidates);
+        List<int[][]> solutions = obtainSolutions(clues,candidates);
+        return solutions.get(0);
     }
 
-    private static int[][] solvePuzzle(int[][] currentBoard, int position) {
+    private static List<int[][]> obtainSolutions(int[] clues, List<int[][]> candidates) {
+        List<int[][]> solutions = new ArrayList<>();
+        for(int[][] candidate : candidates){
+            if (isSolution(clues,candidate)){
+                solutions.add(candidate);
+            }
+        }
+        return solutions;
+    }
+
+    private static void obtainCandidates(int[][] currentBoard, int position, List<int[][]> solutions) {
 
         if(position!=BOARD_SIZE*BOARD_SIZE){
             int i = position / BOARD_SIZE;
             int j = position % BOARD_SIZE;
-            //System.out.println(String.format("level %s %s",i,j));
             for (int k = 1; k<=BOARD_SIZE ; k++){
                 int[][] updatedBoard = copyBoard(currentBoard);
                 updatedBoard[i][j]=k;
                 //PODA
                 if(isRealCandidate(updatedBoard)){
-                    int[][] candidate = solvePuzzle(updatedBoard, position + 1);
-                    if(isSolution(candidate)){
-                        return candidate;
+                    obtainCandidates(updatedBoard, position + 1, solutions);
+//                    if(isSolution(clues ,candidate)){
+                    if (position == BOARD_SIZE * BOARD_SIZE -1){
+                        solutions.add(updatedBoard);
                     }
                 }
             }
 
         }
-        else{
-            //printSolution(currentBoard);
-        }
-        return currentBoard;
     }
 
     private static boolean isRealCandidate(int[][] updatedBoard) {
@@ -107,9 +118,76 @@ public class SkyScrapers {
         }
     }
 
-    private static boolean isSolution(int[][] solution) {
-        if(sameFlatHeight(solution)) return false;
+    private static boolean isSolution(int[] clues, int[][] solution) {
+        return (validateClues(clues, solution));
+    }
+
+    private static boolean zeros(int[][] solution) {
+        for(int i=0 ; i<BOARD_SIZE; i++){
+            for(int j = 0; j< BOARD_SIZE; j++){
+                if (solution[i][j]==0){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean validateClues(int[] clues, int[][] solution) {
+        for(int i =0; i<BOARD_SIZE; i++){
+            if (!validateClueRow(i,clues,solution)) return false;
+        }
         return true;
+    }
+
+    private static boolean validateClueRow(int i, int[] clues, int[][] solution) {
+        switch (i){
+            case 0:
+                if(!validateTopClues(clues,solution)) return false;
+                break;
+//            case 1:
+//                if(!validateRightClues(clues,solution)) return false;
+//                break;
+//            case 2:
+//                if(!validateBottomClues(clues,solution)) return false;
+//                break;
+//            case 3:
+//                if(!validateLeftClues(clues,solution)) return false;
+//                break;
+        }
+        return true;
+    }
+
+    private static boolean validateTopClues(int[] clues, int[][] solution) {
+        int[] topClues = new int[BOARD_SIZE];
+        for(int i=0; i<BOARD_SIZE; i++){
+            topClues[i] = clues[i];
+        }
+        for(int i=0; i<BOARD_SIZE; i++){
+            int clue = topClues[i];
+            if (clue!=0){
+                int[] skyScrapperLine = new int[BOARD_SIZE];
+                for (int j=0;j<BOARD_SIZE;j++){
+                    skyScrapperLine[j]=solution[j][i];
+                }
+                int visibleBuildings = visibleBuildings(skyScrapperLine);
+                if (visibleBuildings!=clue) return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static int visibleBuildings(int[] skyScrapperLine) {
+        int maxHeight = skyScrapperLine[0];
+        int visibleBuildings = 1;
+        for(int i= 1; i< BOARD_SIZE; i++){
+            if(skyScrapperLine[i]>maxHeight){
+                maxHeight = skyScrapperLine[i];
+                visibleBuildings ++;
+            }
+        }
+        return visibleBuildings;
     }
 
     private static boolean sameFlatHeight(int[][] solution) {
