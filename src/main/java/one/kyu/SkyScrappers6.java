@@ -14,20 +14,18 @@ public class SkyScrappers6 {
     static int[][] solvePuzzle(int[] clues){
 
 
-        Queue<Node> queue = new PriorityQueue<>(new Comparator<Node>() {
-            public int compare(Node n1, Node n2) {
-                return (n2.getScore()-n1.getScore());
-            }
-        });
+        List<Node> nodes = new ArrayList<>();
 
-        queue.add(new Node(new int[BOARD_SIZE][BOARD_SIZE],0, 0));
-        while(!queue.isEmpty()){
-            Node firstNode = queue.poll();
+        nodes.add(new Node(new int[BOARD_SIZE][BOARD_SIZE],0, 0));
+        while(!nodes.isEmpty()){
+            Node firstNode = nodes.get(0);
+            nodes.remove(firstNode);
             if(isSolution(clues, firstNode.getBoard())){
                 return firstNode.getBoard();
             }
             if(!isFinalNode(firstNode.getLevel())){
-                queue.addAll(expand(firstNode));
+                nodes.addAll(expand(firstNode));
+                nodes.sort(Comparator.comparing(Node::getScore).reversed());
             }
         }
         throw new RuntimeException("No solution found");
@@ -37,7 +35,7 @@ public class SkyScrappers6 {
         List<Node> nodes = new ArrayList<>();
         int i = firstNode.getLevel() / BOARD_SIZE;
         int j = firstNode.getLevel() % BOARD_SIZE;
-        for(int k=1;k<BOARD_SIZE;k++){
+        for(int k=1;k<=BOARD_SIZE;k++){
             int[][] updatedBoard = copyBoard(firstNode.getBoard());
             updatedBoard[i][j] = k;
             if (validateHeights(updatedBoard)) {
@@ -223,7 +221,7 @@ public class SkyScrappers6 {
     public static class Node {
         private int level;
         private int[][] board;
-        private int score;
+        private Integer score;
 
         public Node(int[][] board, int level, int score) {
             this.board=board;
@@ -247,11 +245,11 @@ public class SkyScrappers6 {
             this.board = board;
         }
 
-        public int getScore() {
+        public Integer getScore() {
             return score;
         }
 
-        public void setScore(int score) {
+        public void setScore(Integer score) {
             this.score = score;
         }
     }
