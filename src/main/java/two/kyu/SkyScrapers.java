@@ -38,10 +38,12 @@ public class SkyScrapers {
             for (int k = 1; k<=BOARD_SIZE ; k++){
                 int[][] updatedBoard = copyBoard(currentBoard);
                 updatedBoard[i][j]=k;
-                //if(isRealCandidate(updatedBoard));
-                int[][] candidate = solvePuzzle(updatedBoard, position + 1);
-                if(isSolution(candidate)){
-                    return candidate;
+                //PODA
+                if(isRealCandidate(updatedBoard)){
+                    int[][] candidate = solvePuzzle(updatedBoard, position + 1);
+                    if(isSolution(candidate)){
+                        return candidate;
+                    }
                 }
             }
 
@@ -68,7 +70,7 @@ public class SkyScrapers {
                 }
             }
         }
-        return false;
+        return true;
     }
 
     private static boolean validateRow(int[][] updatedBoard) {
@@ -83,7 +85,7 @@ public class SkyScrapers {
                 }
             }
         }
-        return false;
+        return true;
     }
 
     private static int[][] copyBoard(int[][] board) {
