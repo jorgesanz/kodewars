@@ -145,9 +145,9 @@ public class SkyScrapers {
             case 0:
                 if(!validateTopClues(clues,solution)) return false;
                 break;
-//            case 1:
-//                if(!validateRightClues(clues,solution)) return false;
-//                break;
+            case 1:
+                if(!validateRightClues(clues,solution)) return false;
+                break;
 //            case 2:
 //                if(!validateBottomClues(clues,solution)) return false;
 //                break;
@@ -155,6 +155,26 @@ public class SkyScrapers {
 //                if(!validateLeftClues(clues,solution)) return false;
 //                break;
         }
+        return true;
+    }
+
+    private static boolean validateRightClues(int[] clues, int[][] solution) {
+        int[] rightClues = new int[BOARD_SIZE];
+        for(int i=0; i<BOARD_SIZE; i++){
+            rightClues[i] = clues[i+BOARD_SIZE];
+        }
+        for(int i=0; i<BOARD_SIZE; i++){
+            int clue = rightClues[i];
+            if (clue!=0){
+                int[] skyScrapperLine = new int[BOARD_SIZE];
+                for (int j=0;j<BOARD_SIZE;j++){
+                    skyScrapperLine[j]=solution[i][BOARD_SIZE-1-j];
+                }
+                int visibleBuildings = visibleBuildings(skyScrapperLine);
+                if (visibleBuildings!=clue) return false;
+            }
+        }
+
         return true;
     }
 
