@@ -53,10 +53,8 @@ public class SkyScrapers {
             for (int k = 1; k<=BOARD_SIZE ; k++){
                 int[][] updatedBoard = copyBoard(currentBoard);
                 updatedBoard[i][j]=k;
-                //PODA
                 if(isRealCandidate(updatedBoard)){
                     obtainCandidates(updatedBoard, position + 1, solutions);
-//                    if(isSolution(clues ,candidate)){
                     if (position == BOARD_SIZE * BOARD_SIZE -1){
                         solutions.add(updatedBoard);
                     }
@@ -227,42 +225,6 @@ public class SkyScrapers {
         return visibleBuildings;
     }
 
-    private static boolean sameFlatHeight(int[][] solution) {
-        if (validateRowHeight(solution)) return true;
-        if (validateColumnHeight(solution)) return true;
-        return false;
-    }
-
-    private static boolean validateColumnHeight(int[][] solution) {
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            Set heightFound = new HashSet();
-            for (int j = 0; j < BOARD_SIZE; j++) {
-                if(heightFound.contains(solution[j][i])){
-                    return true;
-                }
-                else{
-                    heightFound.add(solution[j][i]);
-                }
-            }
-        }
-        return false;
-    }
-
-    private static boolean validateRowHeight(int[][] solution) {
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            Set heightFound = new HashSet();
-            for (int j = 0; j < BOARD_SIZE; j++) {
-                if(heightFound.contains(solution[i][j])){
-                    return true;
-                }
-                else{
-                    heightFound.add(solution[i][j]);
-                }
-            }
-        }
-        return false;
-    }
-
     private static int clues[][] = {
             {2, 2, 1, 3,
                     2, 2, 3, 1,
@@ -291,20 +253,24 @@ public class SkyScrapers {
 
     @Test
     public void testSolvePuzzle1() {
-//        long initTime = System.currentTimeMillis();
-//
-//        int[][] solution = SkyScrapers.solvePuzzle(clues[0]);
-//
-//        long endTime = System.currentTimeMillis();
-//
-//        System.out.println(String.format("final solution found in %s milliseconds",endTime-initTime));
+        int[][] solution = SkyScrapers.solvePuzzle(clues[0]);
 
-//        printSolution(solution);
-        assertEquals(SkyScrapers.solvePuzzle(clues[0]), outcomes[0]);
+        for(int i=0;i<BOARD_SIZE;i++){
+            for(int j=0; j< BOARD_SIZE; j++){
+                assertEquals(solution[i][j], outcomes[0][i][j]);
+            }
+        }
     }
 
     @Test
     public void testSolvePuzzle2() {
-        assertEquals(SkyScrapers.solvePuzzle(clues[1]), outcomes[1]);
+
+        int[][] solution = SkyScrapers.solvePuzzle(clues[1]);
+
+        for(int i=0;i<BOARD_SIZE;i++){
+            for(int j=0; j< BOARD_SIZE; j++){
+                assertEquals(solution[i][j], outcomes[1][i][j]);
+            }
+        }
     }
 }
