@@ -2,6 +2,9 @@ package two.kyu;
 
 import org.junit.Test;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static junit.framework.TestCase.assertEquals;
 
 /*
@@ -19,7 +22,7 @@ Can you write a program that can solve this puzzle?
 * */
 public class SkyScrapers {
 
-    public static final int BOARD_SIZE = 3;
+    public static final int BOARD_SIZE = 4;
 
     static int[][] solvePuzzle(int[] clues) {
         int[][] solution = new int[BOARD_SIZE][BOARD_SIZE];
@@ -27,21 +30,60 @@ public class SkyScrapers {
     }
 
     private static int[][] solvePuzzle(int[][] currentBoard, int position) {
+
         if(position!=BOARD_SIZE*BOARD_SIZE){
             int i = position / BOARD_SIZE;
             int j = position % BOARD_SIZE;
             //System.out.println(String.format("level %s %s",i,j));
-            for (int k = 0; k<BOARD_SIZE ; k++){
-                int[][] solution = copyBoard(currentBoard);
-                solution[i][j]=k;
-                solvePuzzle(solution, position + 1);
+            for (int k = 1; k<=BOARD_SIZE ; k++){
+                int[][] updatedBoard = copyBoard(currentBoard);
+                updatedBoard[i][j]=k;
+                //if(isRealCandidate(updatedBoard));
+                int[][] candidate = solvePuzzle(updatedBoard, position + 1);
+                if(isSolution(candidate)){
+                    return candidate;
+                }
             }
 
         }
         else{
-            printSolution(currentBoard);
+            //printSolution(currentBoard);
         }
         return currentBoard;
+    }
+
+    private static boolean isRealCandidate(int[][] updatedBoard) {
+        return (validateRow(updatedBoard) && validateColumn(updatedBoard) );
+    }
+
+    private static boolean validateColumn(int[][] updatedBoard) {
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            Set heightFound = new HashSet();
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                if(updatedBoard[j][i]!=0 && heightFound.contains(updatedBoard[j][i])){
+                    return false;
+                }
+                else{
+                    heightFound.add(updatedBoard[j][i]);
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean validateRow(int[][] updatedBoard) {
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            Set heightFound = new HashSet();
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                if(updatedBoard[i][j] !=0 && heightFound.contains(updatedBoard[i][j])){
+                    return false;
+                }
+                else{
+                    heightFound.add(updatedBoard[i][j]);
+                }
+            }
+        }
+        return false;
     }
 
     private static int[][] copyBoard(int[][] board) {
@@ -64,12 +106,44 @@ public class SkyScrapers {
     }
 
     private static boolean isSolution(int[][] solution) {
+        if(sameFlatHeight(solution)) return false;
+        return true;
+    }
+
+    private static boolean sameFlatHeight(int[][] solution) {
+        if (validateRowHeight(solution)) return true;
+        if (validateColumnHeight(solution)) return true;
+        return false;
+    }
+
+    private static boolean validateColumnHeight(int[][] solution) {
         for (int i = 0; i < BOARD_SIZE; i++) {
+            Set heightFound = new HashSet();
             for (int j = 0; j < BOARD_SIZE; j++) {
-                if (solution[i][j] == 0) return false;
+                if(heightFound.contains(solution[j][i])){
+                    return true;
+                }
+                else{
+                    heightFound.add(solution[j][i]);
+                }
             }
         }
-        return true;
+        return false;
+    }
+
+    private static boolean validateRowHeight(int[][] solution) {
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            Set heightFound = new HashSet();
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                if(heightFound.contains(solution[i][j])){
+                    return true;
+                }
+                else{
+                    heightFound.add(solution[i][j]);
+                }
+            }
+        }
+        return false;
     }
 
     private static int clues[][] = {
@@ -100,7 +174,16 @@ public class SkyScrapers {
 
     @Test
     public void testSolvePuzzle1() {
-        assertEquals(SkyScrapers.solvePuzzle(clues[0]), outcomes[0]);
+        long initTime = System.currentTimeMillis();
+
+        int[][] solution = SkyScrapers.solvePuzzle(clues[0]);
+
+        long endTime = System.currentTimeMillis();
+
+        System.out.println(String.format("final solution found in %s milliseconds",endTime-initTime));
+
+        printSolution(solution);
+        assertEquals(solution, outcomes[0]);
     }
 
     @Test
