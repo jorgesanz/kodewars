@@ -19,23 +19,48 @@ Can you write a program that can solve this puzzle?
 * */
 public class SkyScrapers {
 
-    public static final int BOARD_SIZE = 2;
+    public static final int BOARD_SIZE = 3;
 
     static int[][] solvePuzzle(int[] clues) {
         int[][] solution = new int[BOARD_SIZE][BOARD_SIZE];
         return solvePuzzle(solution, 0);
     }
 
-    private static int[][] solvePuzzle(int[][] solution, int position) {
-        if(position==BOARD_SIZE*BOARD_SIZE)return solution;
+    private static int[][] solvePuzzle(int[][] currentBoard, int position) {
+        if(position!=BOARD_SIZE*BOARD_SIZE){
+            int i = position / BOARD_SIZE;
+            int j = position % BOARD_SIZE;
+            //System.out.println(String.format("level %s %s",i,j));
+            for (int k = 0; k<BOARD_SIZE ; k++){
+                int[][] solution = copyBoard(currentBoard);
+                solution[i][j]=k;
+                solvePuzzle(solution, position + 1);
+            }
 
-        int i = position / BOARD_SIZE;
-        int j = position % BOARD_SIZE;
-        System.out.println(String.format("level %s %s",i,j));
+        }
+        else{
+            printSolution(currentBoard);
+        }
+        return currentBoard;
+    }
 
-        return solvePuzzle(solution, position + 1);
+    private static int[][] copyBoard(int[][] board) {
+        int[][] copy = new int[BOARD_SIZE][BOARD_SIZE];
+        for(int i = 0; i < BOARD_SIZE ; i++){
+            for(int j = 0; j < BOARD_SIZE ; j++){
+                copy[i][j]= board[i][j];
+            }
+        }
+        return copy;
+    }
 
-
+    private static void printSolution(int[][] solution) {
+        System.out.println("New Solution");
+        for(int i = 0; i < BOARD_SIZE ; i++){
+            for(int j = 0; j < BOARD_SIZE ; j++){
+                System.out.println(String.format("%s %s: %s",i,j,solution[i][j]));
+            }
+        }
     }
 
     private static boolean isSolution(int[][] solution) {
