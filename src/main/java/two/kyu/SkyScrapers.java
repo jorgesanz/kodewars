@@ -24,89 +24,58 @@ Can you write a program that can solve this puzzle?
 * */
 public class SkyScrapers {
 
-    public static final int BOARD_SIZE = 5;
+    public static final int BOARD_SIZE = 4;
 
     static int[][] solvePuzzle(int[] clues) {
-        int[][] solution = new int[BOARD_SIZE][BOARD_SIZE];
-        List<int[][]> candidates = new ArrayList<>();
-        obtainCandidates(clues, solution, 0, candidates, false);
-        List<int[][]> solutions = obtainSolutions(clues,candidates);
-        solution = solutions.get(0);
-        return solution;
-    }
-
-    private static List<int[][]> obtainSolutions(int[] clues, List<int[][]> candidates) {
+        int[][] initialBoard = new int[BOARD_SIZE][BOARD_SIZE];
         List<int[][]> solutions = new ArrayList<>();
-        for(int[][] candidate : candidates){
-            if (isSolution(clues,candidate)){
-                solutions.add(candidate);
-            }
-        }
-        return solutions;
+        obtainSolution(clues, initialBoard, 0, solutions, false);
+        return solutions.get(0);
     }
 
-    private static void obtainCandidates(int[] clues, int[][] currentBoard, int position, List<int[][]> solutions, boolean success) {
 
-        if(position!=BOARD_SIZE*BOARD_SIZE && !success){
+    private static void obtainSolution(int[] clues, int[][] currentBoard, int position, List<int[][]> solutions, boolean success) {
+
+        if (position != BOARD_SIZE * BOARD_SIZE && !success) {
             int i = position / BOARD_SIZE;
             int j = position % BOARD_SIZE;
-            for (int k = 1; k<=BOARD_SIZE ; k++){
+            for (int k = 1; k <= BOARD_SIZE; k++) {
                 int[][] updatedBoard = copyBoard(currentBoard);
-                updatedBoard[i][j]=k;
-                if(isRealCandidate(updatedBoard)){
-                    obtainCandidates(clues, updatedBoard, position + 1, solutions, success);
-                    if (position == BOARD_SIZE * BOARD_SIZE -1){
-                        if(isSolution(clues,updatedBoard)){
-                            success = true;
-                            solutions.add(updatedBoard);
-                        }
-
+                updatedBoard[i][j] = k;
+                if (validateHeights(updatedBoard)) {
+                    obtainSolution(clues, updatedBoard, position + 1, solutions, success);
+                    if (position == BOARD_SIZE * BOARD_SIZE - 1 && isSolution(clues, updatedBoard)) {
+                        success = true;
+                        solutions.add(updatedBoard);
                     }
                 }
             }
-
         }
     }
 
-    private static boolean isRealCandidate(int[][] updatedBoard) {
-        return (validateRow(updatedBoard) && validateColumn(updatedBoard) );
-    }
 
-    private static boolean validateColumn(int[][] updatedBoard) {
+    private static boolean validateHeights(int[][] updatedBoard) {
         for (int i = 0; i < BOARD_SIZE; i++) {
-            Set heightFound = new HashSet();
+            Set columnHeights = new HashSet();
+            Set rowHeights = new HashSet();
             for (int j = 0; j < BOARD_SIZE; j++) {
-                if(updatedBoard[j][i]!=0 && heightFound.contains(updatedBoard[j][i])){
+                if ((updatedBoard[i][j] != 0 && rowHeights.contains(updatedBoard[i][j])) || (updatedBoard[j][i] != 0 && columnHeights.contains(updatedBoard[j][i]))) {
                     return false;
-                }
-                else{
-                    heightFound.add(updatedBoard[j][i]);
+                } else {
+                    columnHeights.add(updatedBoard[j][i]);
+                    rowHeights.add(updatedBoard[i][j]);
                 }
             }
         }
         return true;
     }
 
-    private static boolean validateRow(int[][] updatedBoard) {
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            Set heightFound = new HashSet();
-            for (int j = 0; j < BOARD_SIZE; j++) {
-                if(updatedBoard[i][j] !=0 && heightFound.contains(updatedBoard[i][j])){
-                    return false;
-                }
-                else{
-                    heightFound.add(updatedBoard[i][j]);
-                }
-            }
-        }
-        return true;
-    }
 
     private static int[][] copyBoard(int[][] board) {
         int[][] copy = new int[BOARD_SIZE][BOARD_SIZE];
-        for(int i = 0; i < BOARD_SIZE ; i++){
-            for(int j = 0; j < BOARD_SIZE ; j++){
-                copy[i][j]= board[i][j];
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                copy[i][j] = board[i][j];
             }
         }
         return copy;
@@ -114,26 +83,26 @@ public class SkyScrapers {
 
 
     private static boolean isSolution(int[] clues, int[][] solution) {
-        for(int i =0; i<BOARD_SIZE; i++){
-            if (!validateClueRow(i,clues,solution)) return false;
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            if (!validateClueRow(i, clues, solution)) return false;
         }
         return true;
     }
 
 
     private static boolean validateClueRow(int i, int[] clues, int[][] solution) {
-        switch (i){
+        switch (i) {
             case 0:
-                if(!validateTopClues(clues,solution)) return false;
+                if (!validateTopClues(clues, solution)) return false;
                 break;
             case 1:
-                if(!validateRightClues(clues,solution)) return false;
+                if (!validateRightClues(clues, solution)) return false;
                 break;
             case 2:
-                if(!validateBottomClues(clues,solution)) return false;
+                if (!validateBottomClues(clues, solution)) return false;
                 break;
             case 3:
-                if(!validateLeftClues(clues,solution)) return false;
+                if (!validateLeftClues(clues, solution)) return false;
                 break;
         }
         return true;
@@ -141,18 +110,18 @@ public class SkyScrapers {
 
     private static boolean validateLeftClues(int[] clues, int[][] solution) {
         int[] leftClues = new int[BOARD_SIZE];
-        for (int i=0;i<BOARD_SIZE;i++){
-            leftClues[i]= clues[i+(3*BOARD_SIZE)];
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            leftClues[i] = clues[i + (3 * BOARD_SIZE)];
         }
-        for(int i=0;i<BOARD_SIZE;i++){
+        for (int i = 0; i < BOARD_SIZE; i++) {
             int clue = leftClues[i];
-            if(clue!=0){
+            if (clue != 0) {
                 int[] skyScrapperLine = new int[BOARD_SIZE];
-                for(int j=0; j<BOARD_SIZE;j++){
-                    skyScrapperLine[j]=solution[BOARD_SIZE-i-1][j];
+                for (int j = 0; j < BOARD_SIZE; j++) {
+                    skyScrapperLine[j] = solution[BOARD_SIZE - i - 1][j];
                 }
                 int visibleBuildings = visibleBuildings(skyScrapperLine);
-                if (visibleBuildings!=clue) return false;
+                if (visibleBuildings != clue) return false;
             }
         }
         return true;
@@ -160,18 +129,18 @@ public class SkyScrapers {
 
     private static boolean validateBottomClues(int[] clues, int[][] solution) {
         int[] bottomClues = new int[BOARD_SIZE];
-        for (int i=0;i<BOARD_SIZE;i++){
-            bottomClues[i]= clues[i+(2*BOARD_SIZE)];
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            bottomClues[i] = clues[i + (2 * BOARD_SIZE)];
         }
-        for(int i = 0; i<BOARD_SIZE; i++){
+        for (int i = 0; i < BOARD_SIZE; i++) {
             int clue = bottomClues[i];
-            if(clue !=0){
+            if (clue != 0) {
                 int[] skyScrapperLine = new int[BOARD_SIZE];
-                for(int j=0;j<BOARD_SIZE;j++){
-                    skyScrapperLine[j]=solution[BOARD_SIZE-j-1][BOARD_SIZE-i-1];
+                for (int j = 0; j < BOARD_SIZE; j++) {
+                    skyScrapperLine[j] = solution[BOARD_SIZE - j - 1][BOARD_SIZE - i - 1];
                 }
                 int visibleBuildings = visibleBuildings(skyScrapperLine);
-                if (visibleBuildings!=clue) return false;
+                if (visibleBuildings != clue) return false;
             }
         }
         return true;
@@ -179,18 +148,18 @@ public class SkyScrapers {
 
     private static boolean validateRightClues(int[] clues, int[][] solution) {
         int[] rightClues = new int[BOARD_SIZE];
-        for(int i=0; i<BOARD_SIZE; i++){
-            rightClues[i] = clues[i+BOARD_SIZE];
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            rightClues[i] = clues[i + BOARD_SIZE];
         }
-        for(int i=0; i<BOARD_SIZE; i++){
+        for (int i = 0; i < BOARD_SIZE; i++) {
             int clue = rightClues[i];
-            if (clue!=0){
+            if (clue != 0) {
                 int[] skyScrapperLine = new int[BOARD_SIZE];
-                for (int j=0;j<BOARD_SIZE;j++){
-                    skyScrapperLine[j]=solution[i][BOARD_SIZE-1-j];
+                for (int j = 0; j < BOARD_SIZE; j++) {
+                    skyScrapperLine[j] = solution[i][BOARD_SIZE - 1 - j];
                 }
                 int visibleBuildings = visibleBuildings(skyScrapperLine);
-                if (visibleBuildings!=clue) return false;
+                if (visibleBuildings != clue) return false;
             }
         }
 
@@ -199,18 +168,18 @@ public class SkyScrapers {
 
     private static boolean validateTopClues(int[] clues, int[][] solution) {
         int[] topClues = new int[BOARD_SIZE];
-        for(int i=0; i<BOARD_SIZE; i++){
+        for (int i = 0; i < BOARD_SIZE; i++) {
             topClues[i] = clues[i];
         }
-        for(int i=0; i<BOARD_SIZE; i++){
+        for (int i = 0; i < BOARD_SIZE; i++) {
             int clue = topClues[i];
-            if (clue!=0){
+            if (clue != 0) {
                 int[] skyScrapperLine = new int[BOARD_SIZE];
-                for (int j=0;j<BOARD_SIZE;j++){
-                    skyScrapperLine[j]=solution[j][i];
+                for (int j = 0; j < BOARD_SIZE; j++) {
+                    skyScrapperLine[j] = solution[j][i];
                 }
                 int visibleBuildings = visibleBuildings(skyScrapperLine);
-                if (visibleBuildings!=clue) return false;
+                if (visibleBuildings != clue) return false;
             }
         }
 
@@ -220,10 +189,10 @@ public class SkyScrapers {
     private static int visibleBuildings(int[] skyScrapperLine) {
         int maxHeight = skyScrapperLine[0];
         int visibleBuildings = 1;
-        for(int i= 1; i< BOARD_SIZE; i++){
-            if(skyScrapperLine[i]>maxHeight){
+        for (int i = 1; i < BOARD_SIZE; i++) {
+            if (skyScrapperLine[i] > maxHeight) {
                 maxHeight = skyScrapperLine[i];
-                visibleBuildings ++;
+                visibleBuildings++;
             }
         }
         return visibleBuildings;
@@ -259,8 +228,8 @@ public class SkyScrapers {
     public void testSolvePuzzle1() {
         int[][] solution = SkyScrapers.solvePuzzle(clues[0]);
 
-        for(int i=0;i<BOARD_SIZE;i++){
-            for(int j=0; j< BOARD_SIZE; j++){
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
                 assertEquals(solution[i][j], outcomes[0][i][j]);
             }
         }
@@ -271,8 +240,8 @@ public class SkyScrapers {
 
         int[][] solution = SkyScrapers.solvePuzzle(clues[1]);
 
-        for(int i=0;i<BOARD_SIZE;i++){
-            for(int j=0; j< BOARD_SIZE; j++){
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
                 assertEquals(solution[i][j], outcomes[1][i][j]);
             }
         }
