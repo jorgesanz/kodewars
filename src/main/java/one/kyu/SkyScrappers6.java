@@ -231,7 +231,7 @@ public class SkyScrappers6 {
                 int visibleBuildings = visibleBuildings(skyScrapperLine);
                 if (visibleBuildings != leftClue) {
                     boardScore.setSolution(false);
-                } else {
+                } else if(noZeros(skyScrapperLine)){
                     boardScore.addPoints(leftClue);
                 }
             }
@@ -243,7 +243,7 @@ public class SkyScrappers6 {
                 int visibleBuildings = visibleBuildings(skyScrapperLine);
                 if (visibleBuildings != bottomClue) {
                     boardScore.setSolution(false);
-                } else {
+                } else if(noZeros(skyScrapperLine)){
                     boardScore.addPoints(bottomClue);
                 }
             }
@@ -255,7 +255,7 @@ public class SkyScrappers6 {
                 int visibleBuildings = visibleBuildings(skyScrapperLine);
                 if (visibleBuildings != rightClue) {
                     boardScore.setSolution(false);
-                } else {
+                } else if(noZeros(skyScrapperLine)){
                     boardScore.addPoints(rightClue);
                 }
             }
@@ -267,7 +267,7 @@ public class SkyScrappers6 {
                 int visibleBuildings = visibleBuildings(skyScrapperLine);
                 if (visibleBuildings != topClue) {
                     boardScore.setSolution(false);
-                } else {
+                } else if(noZeros(skyScrapperLine)){
                     boardScore.addPoints(topClue);
                 }
             }
@@ -276,6 +276,15 @@ public class SkyScrappers6 {
             boardScore.setSolution(true);
         }
         return boardScore;
+    }
+
+    private static boolean noZeros(int[] skyScrapperLine) {
+        for (int value: skyScrapperLine){
+            if(value == 0){
+                return false;
+            }
+        }
+        return true;
     }
 
 
