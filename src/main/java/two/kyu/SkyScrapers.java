@@ -143,9 +143,9 @@ public class SkyScrapers {
 
     private static int visibleBuildings(int[] skyScrapperLine) {
         int maxHeight = skyScrapperLine[0];
-        int visibleBuildings = 1;
-        for (int i = 1; i < BOARD_SIZE; i++) {
-            if (skyScrapperLine[i] > maxHeight) {
+        int visibleBuildings = 0;
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            if (skyScrapperLine[i] >= maxHeight) {
                 maxHeight = skyScrapperLine[i];
                 visibleBuildings++;
             }

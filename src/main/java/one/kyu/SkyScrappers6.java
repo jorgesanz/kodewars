@@ -17,6 +17,7 @@ public class SkyScrappers6 {
         List<Node> nodes = new ArrayList<>();
 
         nodes.add(new Node(new int[BOARD_SIZE][BOARD_SIZE],0, 0));
+        int maxScore = 0;
         while(!nodes.isEmpty()){
             Node firstNode = nodes.get(0);
             nodes.remove(firstNode);
@@ -24,14 +25,19 @@ public class SkyScrappers6 {
                 return firstNode.getBoard();
             }
             if(!isFinalNode(firstNode.getLevel())){
-                nodes.addAll(expand(firstNode));
+                nodes.addAll(expand(firstNode, clues));
                 nodes.sort(Comparator.comparing(Node::getScore).reversed());
+                if(nodes.get(0)!=null && nodes.get(0).getScore()>maxScore){
+                    System.out.println(String.format("Max score in queue %s",nodes.get(0).getScore()));
+                    maxScore = nodes.get(0).getScore();
+                }
+
             }
         }
         throw new RuntimeException("No solution found");
     }
 
-    private static Collection<? extends Node> expand(Node firstNode) {
+    private static Collection<? extends Node> expand(Node firstNode, int[] clues) {
         List<Node> nodes = new ArrayList<>();
         int i = firstNode.getLevel() / BOARD_SIZE;
         int j = firstNode.getLevel() % BOARD_SIZE;
@@ -39,33 +45,13 @@ public class SkyScrappers6 {
             int[][] updatedBoard = copyBoard(firstNode.getBoard());
             updatedBoard[i][j] = k;
             if (validateHeights(updatedBoard)) {
-                //int score = calculateScore();
-                nodes.add(new Node(updatedBoard,firstNode.getLevel()+1, firstNode.getLevel()+1));
+                int score = getScore(clues, firstNode.getBoard());
+                nodes.add(new Node(updatedBoard,firstNode.getLevel()+1, score));
             }
         }
         return nodes;
     }
 
-
-    private static void obtainSolution(int[] clues, int[][] currentBoard, int position, List<int[][]> solutions, boolean success) {
-
-        if (position != BOARD_SIZE * BOARD_SIZE && !success) {
-            int i = position / BOARD_SIZE;
-            int j = position % BOARD_SIZE;
-            for (int k = 1; k <= BOARD_SIZE; k++) {
-                int[][] updatedBoard = copyBoard(currentBoard);
-                updatedBoard[i][j] = k;
-                if (validateHeights(updatedBoard)) {
-                    obtainSolution(clues, updatedBoard, position + 1, solutions, success);
-
-                    if (isFinalNode(position) && isSolution(clues, updatedBoard)) {
-                        success = true;
-                        solutions.add(updatedBoard);
-                    }
-                }
-            }
-        }
-    }
 
     private static boolean isFinalNode(int position) {
         return position == BOARD_SIZE * BOARD_SIZE - 1;
@@ -99,8 +85,19 @@ public class SkyScrappers6 {
         return copy;
     }
 
-
     private static boolean isSolution(int[] clues, int[][] solution) {
+        BoardScore boardScore = processBoard(clues, solution);
+        return boardScore.isSolution();
+    }
+
+    private static int getScore(int[] clues, int[][] solution) {
+        BoardScore boardScore = processBoard(clues, solution);
+        return boardScore.getScore();
+    }
+
+    private static BoardScore processBoard(int[] clues, int[][] solution) {
+        BoardScore boardScore = new BoardScore();
+
         int[] leftClues = new int[BOARD_SIZE];
         int[] bottomClues = new int[BOARD_SIZE];
         int[] rightClues = new int[BOARD_SIZE];
@@ -128,7 +125,11 @@ public class SkyScrappers6 {
                     skyScrapperLine[j] = solution[BOARD_SIZE - i - 1][j];
                 }
                 int visibleBuildings = visibleBuildings(skyScrapperLine);
-                if (visibleBuildings != leftClue) return false;
+                if (visibleBuildings != leftClue){
+                    boardScore.setSolution(false);
+                }else{
+                    boardScore.addPoints(leftClue);
+                }
             }
             if (bottomClue != 0) {
 
@@ -136,7 +137,11 @@ public class SkyScrappers6 {
                     skyScrapperLine[j] = solution[BOARD_SIZE - j - 1][BOARD_SIZE - i - 1];
                 }
                 int visibleBuildings = visibleBuildings(skyScrapperLine);
-                if (visibleBuildings != bottomClue) return false;
+                if (visibleBuildings != bottomClue){
+                    boardScore.setSolution(false);
+                }else{
+                    boardScore.addPoints(bottomClue);
+                }
             }
             if (rightClue != 0) {
 
@@ -144,7 +149,11 @@ public class SkyScrappers6 {
                     skyScrapperLine[j] = solution[i][BOARD_SIZE - 1 - j];
                 }
                 int visibleBuildings = visibleBuildings(skyScrapperLine);
-                if (visibleBuildings != rightClue) return false;
+                if (visibleBuildings != rightClue) {
+                    boardScore.setSolution(false);
+                }else{
+                    boardScore.addPoints(rightClue);
+                }
             }
             if (topClue != 0) {
 
@@ -152,19 +161,26 @@ public class SkyScrappers6 {
                     skyScrapperLine[j] = solution[j][i];
                 }
                 int visibleBuildings = visibleBuildings(skyScrapperLine);
-                if (visibleBuildings != topClue) return false;
+                if (visibleBuildings != topClue) {
+                    boardScore.setSolution(false);
+                }else{
+                    boardScore.addPoints(topClue);
+                }
             }
 
         }
-        return true;
+        if(boardScore.isSolution()==null){
+            boardScore.setSolution(true);
+        }
+        return boardScore;
     }
-    
+
 
     private static int visibleBuildings(int[] skyScrapperLine) {
         int maxHeight = skyScrapperLine[0];
-        int visibleBuildings = 1;
-        for (int i = 1; i < BOARD_SIZE; i++) {
-            if (skyScrapperLine[i] > maxHeight) {
+        int visibleBuildings = 0;
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            if (skyScrapperLine[i] >= maxHeight) {
                 maxHeight = skyScrapperLine[i];
                 visibleBuildings++;
             }
@@ -205,6 +221,27 @@ public class SkyScrappers6 {
 
         public void setScore(Integer score) {
             this.score = score;
+        }
+    }
+
+    public static class BoardScore{
+        private Boolean isSolution;
+        private int score;
+
+        public Boolean isSolution() {
+            return isSolution;
+        }
+
+        public void setSolution(Boolean solution) {
+            isSolution = solution;
+        }
+
+        public int getScore() {
+            return score;
+        }
+
+        public void addPoints(int score) {
+            this.score += score;
         }
     }
 
