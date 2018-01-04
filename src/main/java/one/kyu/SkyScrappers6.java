@@ -15,16 +15,14 @@ public class SkyScrappers6 {
     public static final int BOARD_SIZE = 6;
 
     static int[][] solvePuzzle(int[] clues) {
-        List<List<int[][]>> clueCombinations = skyScrappersInit(clues);
+        List<Clue> clueCombinations = obtainClueCombinations(clues);
+        clueCombinations.sort(Comparator.comparing(Clue::getCombinationsSize));
         List<int[][]> candidates = obtainCandidates(clueCombinations,0, new int[BOARD_SIZE][BOARD_SIZE]);
 
         printSolution(candidates.get(0));
 
         List<Node> nodes = candidates.stream().map(candidate -> new Node(candidate, 0, getScore(clues,candidate))).collect(toList());
-
-//        List<Node> nodes = new ArrayList<>();
-//        Node firstNode = calculateFirstNode(clues);
-//        nodes.add(firstNode);
+        
         int maxScore = 0;
         while (!nodes.isEmpty()) {
             Node node = nodes.get(0);
@@ -45,7 +43,7 @@ public class SkyScrappers6 {
         throw new RuntimeException("No solution found");
     }
 
-    private static List<int[][]> obtainCandidates(final List<List<int[][]>> clueCombinations, int cluePosition, int[][] currentCandidate) {
+    private static List<int[][]> obtainCandidates(final List<Clue> clueCombinations, int cluePosition, int[][] currentCandidate) {
 
 //        if(cluePosition == 9){
 //            System.out.println("candidate");
@@ -61,11 +59,11 @@ public class SkyScrappers6 {
             return currentCandidates;
         }
         else{
-            List<int[][]> clue = clueCombinations.get(cluePosition);
-            if(clue.size()==0){
+            Clue clue = clueCombinations.get(cluePosition);
+            if(clue.getCombinationsSize()==0){
                 currentCandidates.addAll(obtainCandidates(clueCombinations, cluePosition +1, currentCandidate));
             }
-            for(int[][] clueCombination: clue){
+            for(int[][] clueCombination: clue.getCombinations()){
                 if(matches(currentCandidate,clueCombination)){
                     int[][] mix = match(currentCandidate,clueCombination);
                     if(validateHeights(mix)){
@@ -121,12 +119,27 @@ public class SkyScrappers6 {
                 .collect(toList());
     }
 
-    private static List<List<int[][]>> skyScrappersInit(int[] clues) {
-
-        List<List<int[][]>> allCombinations = IntStream.range(0,clues.length)
-                .boxed().map(position->obtainAllMatrix(clues[position],position))
+    private static List<Clue> obtainClueCombinations(int[] clues) {
+        List<Clue> clueCombinations = IntStream.range(0,clues.length)
+                .boxed().map(position->obtainAllMatrix(clues[position],position)).map(clueOptions -> new Clue(clueOptions))
                 .collect(toList());
-        return allCombinations;
+        return clueCombinations;
+    }
+
+    public static class Clue{
+        private List<int[][]> combinations;
+
+        public Clue(List<int[][]> combinations){
+            this.combinations=combinations;
+        }
+
+        public List<int[][]> getCombinations() {
+            return combinations;
+        }
+
+        public int getCombinationsSize(){
+            return (combinations!=null?combinations.size():0);
+        }
     }
 
     private static int[][] obtainMatrix(int[] skyScrappers, int position) {
@@ -181,48 +194,6 @@ public class SkyScrappers6 {
         }
     }
 
-
-
-    private static Node calculateFirstNode(int[] clues) {
-        int[][] board = new int[BOARD_SIZE][BOARD_SIZE];
-
-        //sure values
-        for (int i = 0; i < clues.length; i++) {
-            if (clues[i] == BOARD_SIZE) {
-                init6Line(board, i);
-            }else if (clues[i] == 1) {
-                init1Line(board, i);
-            }
-        }
-
-        //addCombinations
-        List<Node> nodes = new ArrayList<>();
-        for (int i = 0; i < clues.length; i++) {
-            if (clues[i] == 5) {
-                //List<int[]> lineFiveCombinations = calculateFiveCombinations();
-            }
-        }
-
-        int score = getScore(clues, board);
-        return new Node(board, 0, score);
-    }
-
-    private static List<int[]> calculateAllCombinations() {
-        int[] ascendentConmbination = new int[BOARD_SIZE];
-
-        List<int[]> fiveCombinations= new ArrayList<>();
-        for (int i=0;i<BOARD_SIZE; i++){
-            ascendentConmbination[i]=1+1;
-        }
-        for (int i=0;i<BOARD_SIZE;i++){
-            for (int j=i; j<BOARD_SIZE;j++){
-                int[] combination = copyLine(ascendentConmbination);
-
-            }
-        }
-        return fiveCombinations;
-    }
-
     private static int[] copyLine(int[] original) {
         int[] copy = new int[original.length];
         for (int i=0; i<BOARD_SIZE; i++){
@@ -231,40 +202,6 @@ public class SkyScrappers6 {
         return copy;
     }
 
-    private static void init1Line(int[][] board, int cluePosition) {
-        int i = getRowFromCluePosition(cluePosition);
-        int j = getColumnFromCluePosition(cluePosition);
-        board[i][j] = BOARD_SIZE;
-    }
-
-    private static void init6Line(int[][] board, int cluePosition) {
-
-        int i = getRowFromCluePosition(cluePosition);
-        int j = getColumnFromCluePosition(cluePosition);
-
-        if (cluePosition/BOARD_SIZE==0){
-            //up to down
-            for (int k = 0; k < BOARD_SIZE; k++) {
-                board[i+k][j]=k+1;
-            }
-        }else if (cluePosition/BOARD_SIZE==1){
-            //right to left
-            for (int k = 0; k < BOARD_SIZE; k++) {
-                board[i][j-k]=k+1;
-            }
-        }else if (cluePosition/BOARD_SIZE==2){
-            //down to top
-            for (int k = 0; k < BOARD_SIZE; k++) {
-                board[i-k][j]=k+1;
-            }
-        }else if (cluePosition/BOARD_SIZE==3){
-            //left to right
-            for (int k = 0; k < BOARD_SIZE; k++) {
-                board[i][j+k]=k+1;
-            }
-        }
-
-    }
 
     private static Collection<? extends Node> expand(Node firstNode, int[] clues) {
         List<Node> nodes = new ArrayList<>();
@@ -430,7 +367,6 @@ public class SkyScrappers6 {
         return true;
     }
 
-
     private static int visibleBuildings(int[] skyScrapperLine) {
         int maxHeight = skyScrapperLine[0];
         int visibleBuildings = 0;
@@ -466,10 +402,6 @@ public class SkyScrappers6 {
             return board;
         }
 
-        public void setBoard(int[][] board) {
-            this.board = board;
-        }
-
         public Integer getScore() {
             return score;
         }
@@ -497,81 +429,6 @@ public class SkyScrappers6 {
 
         public void addPoints(int score) {
             this.score += score;
-        }
-    }
-
-    private static int getColumnFromCluePosition(int cluePosition) {
-        switch (cluePosition) {
-            case 0:
-            case 17:
-            case 18:
-            case 19:
-            case 20:
-            case 21:
-            case 22:
-            case 23:
-                return 0;
-            case 1:
-            case 16:
-                return 1;
-            case 2:
-            case 15:
-                return 2;
-            case 3:
-            case 14:
-                return 3;
-            case 4:
-            case 13:
-                return 4;
-            case 5:
-            case 6:
-            case 7:
-            case 8:
-            case 9:
-            case 10:
-            case 11:
-            case 12:
-                return 5;
-
-            default:
-                throw new RuntimeException();
-        }
-    }
-
-    private static int getRowFromCluePosition(int cluePosition) {
-        switch (cluePosition) {
-            case 0:
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-            case 6:
-            case 23:
-                return 0;
-            case 7:
-            case 22:
-                return 1;
-            case 8:
-            case 21:
-                return 2;
-            case 9:
-            case 20:
-                return 3;
-            case 10:
-            case 19:
-                return 4;
-            case 11:
-            case 12:
-            case 13:
-            case 14:
-            case 15:
-            case 16:
-            case 17:
-            case 18:
-                return 5;
-            default:
-                throw new RuntimeException();
         }
     }
 
