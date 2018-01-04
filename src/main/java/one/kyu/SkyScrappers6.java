@@ -20,9 +20,11 @@ public class SkyScrappers6 {
 
         printSolution(candidates.get(0));
 
-        List<Node> nodes = new ArrayList<>();
-        Node firstNode = calculateFirstNode(clues);
-        nodes.add(firstNode);
+        List<Node> nodes = candidates.stream().map(candidate -> new Node(candidate, 0, getScore(clues,candidate))).collect(toList());
+
+//        List<Node> nodes = new ArrayList<>();
+//        Node firstNode = calculateFirstNode(clues);
+//        nodes.add(firstNode);
         int maxScore = 0;
         while (!nodes.isEmpty()) {
             Node node = nodes.get(0);
