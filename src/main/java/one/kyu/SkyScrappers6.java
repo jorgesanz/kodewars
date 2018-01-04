@@ -3,16 +3,19 @@ package one.kyu;
 import org.junit.Test;
 
 import java.util.*;
+import java.util.stream.IntStream;
 
+import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertArrayEquals;
 
-public class SkyScrappers6 {
+//MAX time to obtain solution 20000ms
 
+public class SkyScrappers6 {
 
     public static final int BOARD_SIZE = 6;
 
     static int[][] solvePuzzle(int[] clues) {
-
+        skyScrappersInit(clues);
         List<Node> nodes = new ArrayList<>();
         Node firstNode = calculateFirstNode(clues);
         nodes.add(firstNode);
@@ -36,14 +39,74 @@ public class SkyScrappers6 {
         throw new RuntimeException("No solution found");
     }
 
+    private static List<int[][]> obtainAllMatrix(int clue, int matrixPosition){
+        return obtainAllCombinations().parallelStream()
+                .filter(elem -> visibleBuildings(elem) == clue)
+                .map(row -> obtainMatrix(row,matrixPosition))
+                .collect(toList());
+    }
+
+    private static void skyScrappersInit(int[] clues) {
+
+        List<int[][]> allCombinations = IntStream.range(0,clues.length)
+                .boxed().map(position->obtainAllMatrix(clues[position],position))
+                .flatMap(List::stream)
+                .collect(toList());
+
+        System.out.println(String.format("obtained %s elements",allCombinations.size()));
+    }
+
+    private static int[][] obtainMatrix(int[] skyScrappers, int position) {
+        int[][] matrix = new int[BOARD_SIZE][BOARD_SIZE];
+        matrix[0]=skyScrappers;
+        System.out.println(skyScrappers.length+" in position "+position);
+        return matrix;
+    }
+
+
+    private static List<int[]> obtainAllCombinations(){
+        Set<Integer> options = new HashSet<>(Arrays.asList(1,2,3,4,5,6));
+        return obtainAllCombinations(options,new int[BOARD_SIZE]);
+    }
+
+    private static List<int[]> obtainAllCombinations(Set<Integer> options, int[] currentCombination) {
+        List<int[]> elements = new ArrayList<>();
+        if(options.isEmpty()){
+            elements.add(currentCombination);
+            return elements;
+        }
+        else{
+
+            for (Integer option:options){
+                    int[] copy = copyLine(currentCombination);
+                    Set<Integer> newOptions = new HashSet<>(options);
+                    newOptions.remove(option);
+                    copy[BOARD_SIZE-options.size()]=option;
+                    elements.addAll(obtainAllCombinations(newOptions,copy));
+            }
+            return elements;
+        }
+    }
+
+
+
     private static Node calculateFirstNode(int[] clues) {
         int[][] board = new int[BOARD_SIZE][BOARD_SIZE];
 
+        //sure values
         for (int i = 0; i < clues.length; i++) {
             if (clues[i] == BOARD_SIZE) {
-                initAscendentLine(board, i);
-            } else if (clues[i] == 1) {
-                initMaxHeightInLine(board, i);
+                init6Line(board, i);
+            }else if (clues[i] == 1) {
+                init1Line(board, i);
+            }
+        }
+
+        //addCombinations
+        List<Node> nodes = new ArrayList<>();
+        for (int i = 0; i < clues.length; i++) {
+            if (clues[i] == 5) {
+                //List<int[]> lineFiveCombinations = calculateFiveCombinations();
             }
         }
 
@@ -51,13 +114,62 @@ public class SkyScrappers6 {
         return new Node(board, 0, score);
     }
 
-    private static void initMaxHeightInLine(int[][] board, int cluePosition) {
+    private static List<int[]> calculateAllCombinations() {
+        int[] ascendentConmbination = new int[BOARD_SIZE];
+
+        List<int[]> fiveCombinations= new ArrayList<>();
+        for (int i=0;i<BOARD_SIZE; i++){
+            ascendentConmbination[i]=1+1;
+        }
+        for (int i=0;i<BOARD_SIZE;i++){
+            for (int j=i; j<BOARD_SIZE;j++){
+                int[] combination = copyLine(ascendentConmbination);
+
+            }
+        }
+        return fiveCombinations;
+    }
+
+    private static int[] copyLine(int[] original) {
+        int[] copy = new int[original.length];
+        for (int i=0; i<BOARD_SIZE; i++){
+            copy[i]=original[i];
+        }
+        return copy;
+    }
+
+    private static void init1Line(int[][] board, int cluePosition) {
         int i = getRowFromCluePosition(cluePosition);
         int j = getColumnFromCluePosition(cluePosition);
         board[i][j] = BOARD_SIZE;
     }
 
-    private static void initAscendentLine(int[][] board, int i) {
+    private static void init6Line(int[][] board, int cluePosition) {
+
+        int i = getRowFromCluePosition(cluePosition);
+        int j = getColumnFromCluePosition(cluePosition);
+
+        if (cluePosition/BOARD_SIZE==0){
+            //up to down
+            for (int k = 0; k < BOARD_SIZE; k++) {
+                board[i+k][j]=k+1;
+            }
+        }else if (cluePosition/BOARD_SIZE==1){
+            //right to left
+            for (int k = 0; k < BOARD_SIZE; k++) {
+                board[i][j-k]=k+1;
+            }
+        }else if (cluePosition/BOARD_SIZE==2){
+            //down to top
+            for (int k = 0; k < BOARD_SIZE; k++) {
+                board[i-k][j]=k+1;
+            }
+        }else if (cluePosition/BOARD_SIZE==3){
+            //left to right
+            for (int k = 0; k < BOARD_SIZE; k++) {
+                board[i][j+k]=k+1;
+            }
+        }
 
     }
 
