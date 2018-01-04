@@ -78,6 +78,7 @@ Session.vim
 ### IntelliJ Idea ###
 .idea
 PAP.iml
+ninja.iml
 .iml
 
 ### Automatic deployment script ###
