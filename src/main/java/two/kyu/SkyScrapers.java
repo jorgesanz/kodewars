@@ -82,115 +82,70 @@ public class SkyScrapers {
     }
 
 
-    private static boolean isSolution(int[] clues, int[][] solution) {
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            if (!validateClueRow(i, clues, solution)) return false;
-        }
-        return true;
-    }
-
-
-    private static boolean validateClueRow(int i, int[] clues, int[][] solution) {
-        switch (i) {
-            case 0:
-                if (!validateTopClues(clues, solution)) return false;
-                break;
-            case 1:
-                if (!validateRightClues(clues, solution)) return false;
-                break;
-            case 2:
-                if (!validateBottomClues(clues, solution)) return false;
-                break;
-            case 3:
-                if (!validateLeftClues(clues, solution)) return false;
-                break;
-        }
-        return true;
-    }
-
-    private static boolean validateLeftClues(int[] clues, int[][] solution) {
+    private static boolean isSolution(int[] clues, int[][] solution){
         int[] leftClues = new int[BOARD_SIZE];
+        int[] bottomClues = new int[BOARD_SIZE];
+        int[] rightClues = new int[BOARD_SIZE];
+        int[] topClues = new int[BOARD_SIZE];
+
+
         for (int i = 0; i < BOARD_SIZE; i++) {
             leftClues[i] = clues[i + (3 * BOARD_SIZE)];
+            bottomClues[i] = clues[i + (2 * BOARD_SIZE)];
+            rightClues[i] = clues[i + BOARD_SIZE];
+            topClues[i] = clues[i];
         }
         for (int i = 0; i < BOARD_SIZE; i++) {
-            int clue = leftClues[i];
-            if (clue != 0) {
-                int[] skyScrapperLine = new int[BOARD_SIZE];
+
+            int leftClue = leftClues[i];
+            int bottomClue = bottomClues[i];
+            int rightClue = rightClues[i];
+            int topClue = topClues[i];
+
+            int[] skyScrapperLine = new int[BOARD_SIZE];
+
+            if (leftClue != 0) {
+
                 for (int j = 0; j < BOARD_SIZE; j++) {
                     skyScrapperLine[j] = solution[BOARD_SIZE - i - 1][j];
                 }
                 int visibleBuildings = visibleBuildings(skyScrapperLine);
-                if (visibleBuildings != clue) return false;
+                if (visibleBuildings != leftClue) return false;
             }
-        }
-        return true;
-    }
+            if (bottomClue != 0) {
 
-    private static boolean validateBottomClues(int[] clues, int[][] solution) {
-        int[] bottomClues = new int[BOARD_SIZE];
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            bottomClues[i] = clues[i + (2 * BOARD_SIZE)];
-        }
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            int clue = bottomClues[i];
-            if (clue != 0) {
-                int[] skyScrapperLine = new int[BOARD_SIZE];
                 for (int j = 0; j < BOARD_SIZE; j++) {
                     skyScrapperLine[j] = solution[BOARD_SIZE - j - 1][BOARD_SIZE - i - 1];
                 }
                 int visibleBuildings = visibleBuildings(skyScrapperLine);
-                if (visibleBuildings != clue) return false;
+                if (visibleBuildings != bottomClue) return false;
             }
-        }
-        return true;
-    }
+            if (rightClue != 0) {
 
-    private static boolean validateRightClues(int[] clues, int[][] solution) {
-        int[] rightClues = new int[BOARD_SIZE];
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            rightClues[i] = clues[i + BOARD_SIZE];
-        }
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            int clue = rightClues[i];
-            if (clue != 0) {
-                int[] skyScrapperLine = new int[BOARD_SIZE];
                 for (int j = 0; j < BOARD_SIZE; j++) {
                     skyScrapperLine[j] = solution[i][BOARD_SIZE - 1 - j];
                 }
                 int visibleBuildings = visibleBuildings(skyScrapperLine);
-                if (visibleBuildings != clue) return false;
+                if (visibleBuildings != rightClue) return false;
             }
-        }
+            if (topClue != 0) {
 
-        return true;
-    }
-
-    private static boolean validateTopClues(int[] clues, int[][] solution) {
-        int[] topClues = new int[BOARD_SIZE];
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            topClues[i] = clues[i];
-        }
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            int clue = topClues[i];
-            if (clue != 0) {
-                int[] skyScrapperLine = new int[BOARD_SIZE];
                 for (int j = 0; j < BOARD_SIZE; j++) {
                     skyScrapperLine[j] = solution[j][i];
                 }
                 int visibleBuildings = visibleBuildings(skyScrapperLine);
-                if (visibleBuildings != clue) return false;
+                if (visibleBuildings != topClue) return false;
             }
-        }
 
+        }
         return true;
     }
 
     private static int visibleBuildings(int[] skyScrapperLine) {
         int maxHeight = skyScrapperLine[0];
-        int visibleBuildings = 1;
-        for (int i = 1; i < BOARD_SIZE; i++) {
-            if (skyScrapperLine[i] > maxHeight) {
+        int visibleBuildings = 0;
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            if (skyScrapperLine[i] >= maxHeight) {
                 maxHeight = skyScrapperLine[i];
                 visibleBuildings++;
             }
