@@ -8,34 +8,34 @@ import java.util.stream.IntStream;
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertArrayEquals;
 
-//MAX time to obtain solution 20000ms
 
 public class SkyScrappers6 {
 
-    public static final int BOARD_SIZE = 6;
+    public static final int BOARD_SIZE = 7;
 
     static int[][] solvePuzzle(int[] clues) {
+        long initTime = System.currentTimeMillis();
+
         List<Clue> clueCombinations = obtainClueCombinations(clues);
+        System.out.println(String.format("clue combinations obtained in %s millis",System.currentTimeMillis()-initTime));
         clueCombinations.sort(Comparator.comparing(Clue::getCombinationsSize));
         List<int[][]> candidates = obtainCandidates(clueCombinations,0, new int[BOARD_SIZE][BOARD_SIZE]);
-
-        printSolution(candidates.get(0));
-
+        System.out.println(String.format("candidates obtained in %s millis",System.currentTimeMillis()-initTime));
         List<Node> nodes = candidates.stream().map(candidate -> new Node(candidate, 0, getScore(clues,candidate))).collect(toList());
-        
+
         int maxScore = 0;
         while (!nodes.isEmpty()) {
             Node node = nodes.get(0);
             nodes.remove(node);
             if (isFinalNode(node.getLevel())) {
                 if (isSolution(clues, node.getBoard())) {
+                    System.out.println(String.format("solution obtained in %s millis",System.currentTimeMillis()-initTime));
                     return node.getBoard();
                 }
             } else {
                 nodes.addAll(expand(node, clues));
                 nodes.sort(Comparator.comparing(Node::getScore).reversed());
                 if (nodes.get(0) != null && nodes.get(0).getScore() > maxScore) {
-                    System.out.println(String.format("Max score in queue %s", nodes.get(0).getScore()));
                     maxScore = nodes.get(0).getScore();
                 }
             }
@@ -43,15 +43,15 @@ public class SkyScrappers6 {
         throw new RuntimeException("No solution found");
     }
 
+    /**
+     *  obtains all the candidates combinating a clue with the combination of the previous clues
+     * @param clueCombinations the whole set of combination of clues
+     * @param cluePosition the position of the clue is going to be processed
+     * @param currentCandidate the best combination of clues at the moment
+     * @return the list of candidates
+     */
     private static List<int[][]> obtainCandidates(final List<Clue> clueCombinations, int cluePosition, int[][] currentCandidate) {
 
-//        if(cluePosition == 9){
-//            System.out.println("candidate");
-//            printSolution(currentCandidate);
-//            System.out.println("clue");
-//            printSolution(clueCombinations.get(cluePosition).get(0));
-//            System.out.println("------------------------------------------------");
-//        }
         List<int[][]> currentCandidates = new ArrayList<>();
 
         if (cluePosition == clueCombinations.size()){
@@ -67,22 +67,20 @@ public class SkyScrappers6 {
                 if(matches(currentCandidate,clueCombination)){
                     int[][] mix = match(currentCandidate,clueCombination);
                     if(validateHeights(mix)){
-//                        System.out.println("candidate");
-//                        printSolution(currentCandidate);
-//                        System.out.println("clue");
-//                        printSolution(clueCombination);
-//                        System.out.println("mix");
-//                        printSolution(mix);
-//                        System.out.println("----------------------------------------------------------");
                         currentCandidates.addAll(obtainCandidates(clueCombinations, cluePosition +1, mix));
                     }
                 }
             }
-            //System.out.println(currentCandidates.size()+" candidates at level "+cluePosition);
             return currentCandidates;
         }
     }
 
+    /**
+     *  mixes a pair of matrices
+     * @param currentCandidate
+     * @param clueCombination
+     * @return
+     */
     private static int[][] match(int[][] currentCandidate, int[][] clueCombination) {
 
         int[][] mix = new int[BOARD_SIZE][BOARD_SIZE];
@@ -101,6 +99,12 @@ public class SkyScrappers6 {
         return mix;
     }
 
+    /**
+     * decides if a pair of matrices can be mixed. 2 matrices can be mixed if don't contain a different number in the same position (except 0's)
+     * @param currentCandidate
+     * @param clueCombination
+     * @return
+     */
     private static boolean matches(int[][] currentCandidate, int[][] clueCombination) {
         for(int i=0; i<BOARD_SIZE; i++){
             for(int j=0; j<BOARD_SIZE; j++){
@@ -112,6 +116,12 @@ public class SkyScrappers6 {
         return true;
     }
 
+    /**
+     * obtain all the combinations of matris for clue in a determinate position
+     * @param clue
+     * @param matrixPosition
+     * @return
+     */
     private static List<int[][]> obtainAllMatrix(int clue, int matrixPosition){
         return obtainAllCombinations().parallelStream()
                 .filter(elem -> visibleBuildings(elem) == clue)
@@ -119,6 +129,11 @@ public class SkyScrappers6 {
                 .collect(toList());
     }
 
+    /**
+     * given an array of clues, obtains a list of all the combinations of matrices for this clues
+     * @param clues
+     * @return
+     */
     private static List<Clue> obtainClueCombinations(int[] clues) {
         List<Clue> clueCombinations = IntStream.range(0,clues.length)
                 .boxed().map(position->obtainAllMatrix(clues[position],position)).map(clueOptions -> new Clue(clueOptions))
@@ -141,6 +156,13 @@ public class SkyScrappers6 {
             return (combinations!=null?combinations.size():0);
         }
     }
+
+    /**
+     * given a skyscrappers line, and the position of the clue, creates the matrix of this clue
+     * @param skyScrappers
+     * @param position
+     * @return
+     */
 
     private static int[][] obtainMatrix(int[] skyScrappers, int position) {
         int[][] matrix = new int[BOARD_SIZE][BOARD_SIZE];
@@ -167,6 +189,10 @@ public class SkyScrappers6 {
         return matrix;
     }
 
+    /**
+     * obtains all the combinations of BOARD_SIZE elements without duplicates
+     * @return
+     */
     private static List<int[]> obtainAllCombinations(){
         Set<Integer> options = new HashSet<>();
         for (int i=1;i<=BOARD_SIZE;i++){
@@ -175,6 +201,12 @@ public class SkyScrappers6 {
         return obtainAllCombinations(options,new int[BOARD_SIZE]);
     }
 
+    /**
+     * recursive method to obtain all combination of BOARD_SIZE elements without duplicates
+     * @param options
+     * @param currentCombination
+     * @return
+     */
     private static List<int[]> obtainAllCombinations(Set<Integer> options, int[] currentCombination) {
         List<int[]> elements = new ArrayList<>();
         if(options.isEmpty()){
@@ -194,6 +226,11 @@ public class SkyScrappers6 {
         }
     }
 
+    /**
+     * copies a line into a new one
+     * @param original
+     * @return
+     */
     private static int[] copyLine(int[] original) {
         int[] copy = new int[original.length];
         for (int i=0; i<BOARD_SIZE; i++){
@@ -202,7 +239,12 @@ public class SkyScrappers6 {
         return copy;
     }
 
-
+    /**
+     * Expand all the posiblities of a node with recursion
+     * @param firstNode
+     * @param clues
+     * @return
+     */
     private static Collection<? extends Node> expand(Node firstNode, int[] clues) {
         List<Node> nodes = new ArrayList<>();
         int i = firstNode.getLevel() / BOARD_SIZE;
@@ -224,12 +266,20 @@ public class SkyScrappers6 {
         return nodes;
     }
 
-
+    /**
+     * decides if the current node is a leaf of the tree
+     * @param position
+     * @return
+     */
     private static boolean isFinalNode(int position) {
         return position == BOARD_SIZE * BOARD_SIZE;
     }
 
-
+    /**
+     * validates if the current board doesn't contains the same values in row or column
+     * @param updatedBoard
+     * @return
+     */
     private static boolean validateHeights(int[][] updatedBoard) {
         for (int i = 0; i < BOARD_SIZE; i++) {
             Set columnHeights = new HashSet();
@@ -246,7 +296,11 @@ public class SkyScrappers6 {
         return true;
     }
 
-
+    /**
+     * copies a board into a new one
+     * @param board
+     * @return
+     */
     private static int[][] copyBoard(int[][] board) {
         int[][] copy = new int[BOARD_SIZE][BOARD_SIZE];
         for (int i = 0; i < BOARD_SIZE; i++) {
@@ -257,28 +311,34 @@ public class SkyScrappers6 {
         return copy;
     }
 
+    /**
+     * a board is a solution if none of the clues are broken
+     * @param clues
+     * @param solution
+     * @return
+     */
     private static boolean isSolution(int[] clues, int[][] solution) {
         BoardScore boardScore = processBoard(clues, solution);
-        if(boardScore.isSolution()){
-            printSolution(solution);
-        }
         return boardScore.isSolution();
     }
 
-    private static void printSolution(int[][] solution) {
-        for(int[] row: solution){
-            for (int cell: row){
-                System.out.print(cell+" ");
-            }
-            System.out.println("");
-        }
-    }
-
+    /**
+     * obtains a score of the solution, to implement the priority queue
+     * @param clues
+     * @param solution
+     * @return
+     */
     private static int getScore(int[] clues, int[][] solution) {
         BoardScore boardScore = processBoard(clues, solution);
         return boardScore.getScore();
     }
 
+    /**
+     * process all the clues and obtains the score
+     * @param clues
+     * @param solution
+     * @return
+     */
     private static BoardScore processBoard(int[] clues, int[][] solution) {
         BoardScore boardScore = new BoardScore();
 
@@ -358,6 +418,11 @@ public class SkyScrappers6 {
         return boardScore;
     }
 
+    /**
+     * check if the array contains 0's
+     * @param skyScrapperLine
+     * @return
+     */
     private static boolean noZeros(int[] skyScrapperLine) {
         for (int value : skyScrapperLine) {
             if (value == 0) {
@@ -367,6 +432,11 @@ public class SkyScrappers6 {
         return true;
     }
 
+    /**
+     * calculates how many buildings are visible from a clue position
+     * @param skyScrapperLine
+     * @return
+     */
     private static int visibleBuildings(int[] skyScrapperLine) {
         int maxHeight = skyScrapperLine[0];
         int visibleBuildings = 0;
