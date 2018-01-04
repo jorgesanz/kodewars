@@ -15,7 +15,11 @@ public class SkyScrappers6 {
     public static final int BOARD_SIZE = 6;
 
     static int[][] solvePuzzle(int[] clues) {
-        skyScrappersInit(clues);
+        List<List<int[][]>> clueCombinations = skyScrappersInit(clues);
+        List<int[][]> candidates = obtainCandidates(clueCombinations,0, new int[BOARD_SIZE][BOARD_SIZE]);
+
+        printSolution(candidates.get(0));
+
         List<Node> nodes = new ArrayList<>();
         Node firstNode = calculateFirstNode(clues);
         nodes.add(firstNode);
@@ -39,6 +43,75 @@ public class SkyScrappers6 {
         throw new RuntimeException("No solution found");
     }
 
+    private static List<int[][]> obtainCandidates(final List<List<int[][]>> clueCombinations, int cluePosition, int[][] currentCandidate) {
+
+//        if(cluePosition == 9){
+//            System.out.println("candidate");
+//            printSolution(currentCandidate);
+//            System.out.println("clue");
+//            printSolution(clueCombinations.get(cluePosition).get(0));
+//            System.out.println("------------------------------------------------");
+//        }
+        List<int[][]> currentCandidates = new ArrayList<>();
+
+        if (cluePosition == clueCombinations.size()){
+            currentCandidates.add(currentCandidate);
+            return currentCandidates;
+        }
+        else{
+            List<int[][]> clue = clueCombinations.get(cluePosition);
+            if(clue.size()==0){
+                currentCandidates.addAll(obtainCandidates(clueCombinations, cluePosition +1, currentCandidate));
+            }
+            for(int[][] clueCombination: clue){
+                if(matches(currentCandidate,clueCombination)){
+                    int[][] mix = match(currentCandidate,clueCombination);
+                    if(validateHeights(mix)){
+//                        System.out.println("candidate");
+//                        printSolution(currentCandidate);
+//                        System.out.println("clue");
+//                        printSolution(clueCombination);
+//                        System.out.println("mix");
+//                        printSolution(mix);
+//                        System.out.println("----------------------------------------------------------");
+                        currentCandidates.addAll(obtainCandidates(clueCombinations, cluePosition +1, mix));
+                    }
+                }
+            }
+            //System.out.println(currentCandidates.size()+" candidates at level "+cluePosition);
+            return currentCandidates;
+        }
+    }
+
+    private static int[][] match(int[][] currentCandidate, int[][] clueCombination) {
+
+        int[][] mix = new int[BOARD_SIZE][BOARD_SIZE];
+
+        for(int i=0; i<BOARD_SIZE; i++){
+            for(int j=0; j<BOARD_SIZE; j++){
+                if( currentCandidate[i][j] != clueCombination[i][j] && currentCandidate[i][j]!=0){
+                    mix[i][j] = currentCandidate[i][j];
+                }
+                else{
+                    mix[i][j] = clueCombination[i][j];
+                }
+                mix[i][j] = ( currentCandidate[i][j] != clueCombination[i][j] && currentCandidate[i][j]!=0 ? currentCandidate[i][j] : clueCombination[i][j]);
+            }
+        }
+        return mix;
+    }
+
+    private static boolean matches(int[][] currentCandidate, int[][] clueCombination) {
+        for(int i=0; i<BOARD_SIZE; i++){
+            for(int j=0; j<BOARD_SIZE; j++){
+                if(currentCandidate[i][j] !=0 && clueCombination[i][j] != 0 && currentCandidate[i][j] != clueCombination[i][j] ){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     private static List<int[][]> obtainAllMatrix(int clue, int matrixPosition){
         return obtainAllCombinations().parallelStream()
                 .filter(elem -> visibleBuildings(elem) == clue)
@@ -46,26 +119,44 @@ public class SkyScrappers6 {
                 .collect(toList());
     }
 
-    private static void skyScrappersInit(int[] clues) {
+    private static List<List<int[][]>> skyScrappersInit(int[] clues) {
 
-        List<int[][]> allCombinations = IntStream.range(0,clues.length)
+        List<List<int[][]>> allCombinations = IntStream.range(0,clues.length)
                 .boxed().map(position->obtainAllMatrix(clues[position],position))
-                .flatMap(List::stream)
                 .collect(toList());
-
-        System.out.println(String.format("obtained %s elements",allCombinations.size()));
+        return allCombinations;
     }
 
     private static int[][] obtainMatrix(int[] skyScrappers, int position) {
         int[][] matrix = new int[BOARD_SIZE][BOARD_SIZE];
-        matrix[0]=skyScrappers;
-        System.out.println(skyScrappers.length+" in position "+position);
+        switch (position/BOARD_SIZE){
+            case 0:
+                for(int i=0;i<BOARD_SIZE;i++){
+                    matrix[i][position % BOARD_SIZE] = skyScrappers[i];
+                }
+                break;
+            case 1:
+                for(int i=0;i<BOARD_SIZE;i++){
+                    matrix[position % BOARD_SIZE][BOARD_SIZE -1 -i] = skyScrappers[i];
+                }
+                break;
+            case 2:
+                for(int i=0;i<BOARD_SIZE;i++){
+                    matrix[BOARD_SIZE -1 -i][BOARD_SIZE - (position % BOARD_SIZE) -1]  = skyScrappers[i];
+                }
+                break;
+            case 3:
+                matrix[BOARD_SIZE -1 - position%BOARD_SIZE]=skyScrappers;
+                break;
+        }
         return matrix;
     }
 
-
     private static List<int[]> obtainAllCombinations(){
-        Set<Integer> options = new HashSet<>(Arrays.asList(1,2,3,4,5,6));
+        Set<Integer> options = new HashSet<>();
+        for (int i=1;i<=BOARD_SIZE;i++){
+            options.add(i);
+        }
         return obtainAllCombinations(options,new int[BOARD_SIZE]);
     }
 
