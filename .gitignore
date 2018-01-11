@@ -147,3 +147,7 @@ docs/_build/
 
 
 *.class
+
+*.iml
+
+*.kotlin_module
