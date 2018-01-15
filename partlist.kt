@@ -1,8 +1,11 @@
 package kyu7
 
+/**
+ * Created by jorge on 9/01/18.
+ */
+import org.junit.Assert.*
 import java.util.Arrays
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
+import org.junit.Test
 
 
 fun partlist(arr:Array<String>): Array<Array<String>?> {
