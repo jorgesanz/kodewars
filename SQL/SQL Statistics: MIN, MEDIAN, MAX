@@ -1,0 +1,37 @@
+For this challenge you need to create a simple SELECT statement. Your task is to calculate the MIN, MEDIAN and MAX scores of the students from the results table.
+
+Tables and relationship below:
+
+student-> id,name
+result-> id, student_id, score
+
+Resultant table:
+min
+median
+max
+
+
+/* SELECT max(r.score)  max, min(r.score) min
+FROM result r JOIN student s ON s.id = r.student_id */
+
+
+
+/* SELECT rank() over( order by r.score)  rank , ROW_NUMBER() over (order by r.score) row_number
+FROM result r JOIN student s ON s.id = r.student_id */
+
+/* SELECT rank() over( order by r.score)  rank , ROW_NUMBER() over (order by r.score) row_number, r.score score
+FROM result r JOIN student s ON s.id = r.student_id */
+
+/* SELECT score as median from (
+
+SELECT rank() over( order by r.score)  rank , ROW_NUMBER() over (order by r.score) row_number, r.score score
+FROM result r JOIN student s ON s.id = r.student_id
+
+) as something where row_number = (50) */
+
+SELECT something.rank, something.row_number, something.score from (
+
+SELECT rank() over( order by r.score)  rank , ROW_NUMBER() over (order by r.score) row_number, r.score score
+FROM result r JOIN student s ON s.id = r.student_id
+
+) as something where row_number = (50)
